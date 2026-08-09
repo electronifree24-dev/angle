@@ -34,7 +34,7 @@ namespace vk
 class Renderer;
 
 // VkFormat values in range [0, kNumVkFormats) are used as indices in various tables.
-constexpr uint32_t kNumVkFormats = 185;
+constexpr uint32_t kNumVkFormats = 166675;
 
 enum ImageFormatSupport
 {
