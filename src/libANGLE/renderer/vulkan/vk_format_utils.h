@@ -18,8 +18,6 @@
 #include "platform/autogen/FeaturesVk_autogen.h"
 
 #include <array>
-
-namespace gl
 {
 struct SwizzleState;
 class TextureCapsMap;
