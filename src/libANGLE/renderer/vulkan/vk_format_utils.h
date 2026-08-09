@@ -1,68 +1,4 @@
-//
-// Copyright 2016 The ANGLE Project Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
-//
-// vk_format_utils:
-//   Helper for Vulkan format code.
-
-#ifndef LIBANGLE_RENDERER_VULKAN_VK_FORMAT_UTILS_H_
-#define LIBANGLE_RENDERER_VULKAN_VK_FORMAT_UTILS_H_
-
-#include "common/SimpleMutex.h"
-#include "common/vulkan/vk_headers.h"
-#include "libANGLE/formatutils.h"
-#include "libANGLE/renderer/Format.h"
-#include "libANGLE/renderer/copyvertex.h"
-#include "libANGLE/renderer/renderer_utils.h"
-#include "platform/autogen/FeaturesVk_autogen.h"
-
-#include <array>
-
-namespace gl
-{
-struct SwizzleState;
-class TextureCapsMap;
-}  // namespace gl
-
-namespace rx
-{
-class ContextVk;
-
-namespace vk
-{
-class Renderer;
-
-// VkFormat values in range [0, kNumVkFormats) are used as indices in various tables.
-constexpr uint32_t kNumVkFormats = 185;
-
-enum ImageFormatSupport
-{
-    SampleOnly,
-    Renderable,
-};
-
-struct ImageFormatInitInfo final
-{
-    angle::FormatID format;
-    InitializeTextureDataFunction initializer;
-};
-
-struct BufferFormatInitInfo final
-{
-    angle::FormatID format;
-    bool vkFormatIsPacked;
-    VertexCopyFunction vertexLoadFunction;
-    bool vertexLoadRequiresConversion;
-};
-
-VkFormat GetVkFormatFromFormatID(const Renderer *renderer, angle::FormatID actualFormatID);
-angle::FormatID GetFormatIDFromVkFormat(VkFormat vkFormat);
-
-// Returns buffer alignment for image-copy operations (to or from a buffer).
-size_t GetImageCopyBufferAlignment(angle::FormatID actualFormatID);
-size_t GetValidImageCopyBufferAlignment(angle::FormatID intendedFormatID,
-                                        angle::FormatID actualFormatID);
+ angle::FormatID actualFormatID);
 bool HasEmulatedImageChannels(const angle::Format &intendedFormat,
                               const angle::Format &actualFormat);
 // Returns true if the image has a different image format than intended.
@@ -180,93 +116,12 @@ class Format final : private angle::NonCopyable
     LoadFunctionMap mRenderableTextureLoadFunctions;
     VertexCopyFunction mVertexLoadFunction;
     VertexCopyFunction mCompressedVertexLoadFunction;
-
-    bool mVertexLoadRequiresConversion;
-    bool mCompressedVertexLoadRequiresConversion;
-    bool mVkBufferFormatIsPacked;
-    bool mVkCompressedBufferFormatIsPacked;
-    bool mVkFormatIsInt;
-    bool mVkFormatIsUnsigned;
 };
 
 bool operator==(const Format &lhs, const Format &rhs);
 bool operator!=(const Format &lhs, const Format &rhs);
 
-class FormatTable final : angle::NonCopyable
-{
-  public:
-    FormatTable();
-    ~FormatTable();
-
-    // Also initializes the TextureCapsMap and the compressedTextureCaps in the Caps instance.
-    void initialize(Renderer *renderer, gl::TextureCapsMap *outTextureCapsMap);
-
-    ANGLE_INLINE const Format &operator[](GLenum internalFormat) const
-    {
-        angle::FormatID formatID = angle::Format::InternalFormatToID(internalFormat);
-        return mFormatData[static_cast<size_t>(formatID)];
-    }
-
-    ANGLE_INLINE const Format &operator[](angle::FormatID formatID) const
-    {
-        return mFormatData[static_cast<size_t>(formatID)];
-    }
-
-  private:
-    // The table data is indexed by angle::FormatID.
-    std::array<Format, angle::kNumANGLEFormats> mFormatData;
-};
-
-// Extra data required for a renderable external format, for EXT_yuv_target support.
-// We have one of these structures per external format slot (angle::FormatID::EXTERNALn)
-// and allocate them to particular actual external formats in the order we see them.
-struct ExternalYuvFormatInfo
-{
-    // Vendor-specific external format value to be passed in VkExternalFormatANDROID
-    uint64_t externalFormat;
-    // Format the driver wants us to use for a temporary color attachment in order to render into
-    // this external format
-    VkFormat colorAttachmentFormat;
-    VkFormatFeatureFlags formatFeatures;
-};
-
-class ExternalFormatTable final : angle::NonCopyable
-{
-  public:
-    // Convert externalFormat to one of angle::FormatID::EXTERNALn so that we can pass around in
-    // ANGLE
-    angle::FormatID getOrAllocExternalFormatID(uint64_t externalFormat,
-                                               VkFormat colorAttachmentFormat,
-                                               VkFormatFeatureFlags formatFeatures);
-    const ExternalYuvFormatInfo &getExternalFormatInfo(angle::FormatID format) const;
-
-  private:
-    static constexpr size_t kMaxExternalFormatCountSupported =
-        ToUnderlying(angle::FormatID::EXTERNAL7) - ToUnderlying(angle::FormatID::EXTERNAL0) + 1;
-    // YUV rendering format cache. We build this table at run time when external formats are used.
-    angle::FixedVector<ExternalYuvFormatInfo, kMaxExternalFormatCountSupported> mExternalYuvFormats;
-    mutable angle::SimpleMutex mExternalYuvFormatMutex;
-};
-
-bool IsYUVExternalFormat(angle::FormatID formatID);
-
-// This will return a reference to a VkFormatProperties with the feature flags supported
-// if the format is a mandatory format described in section 31.3.3. Required Format Support
-// of the Vulkan spec. If the vkFormat isn't mandatory, it will return a VkFormatProperties
-// initialized to 0.
-const VkFormatProperties &GetMandatoryFormatSupport(angle::FormatID formatID);
-
-VkImageUsageFlags GetMaximalImageUsageFlags(Renderer *renderer, angle::FormatID formatID);
-VkImageCreateFlags GetMinimalImageCreateFlags(Renderer *renderer,
-                                              gl::TextureType textureType,
-                                              VkImageUsageFlags usage);
-
-}  // namespace vk
-
-// Checks if a Vulkan format supports all the features needed to use it as a GL texture format.
-bool HasFullTextureFormatSupport(vk::Renderer *renderer, angle::FormatID formatID);
-// Checks if a Vulkan format supports all the features except rendering.
-bool HasNonRenderableTextureFormatSupport(vk::Renderer *renderer, angle::FormatID formatID);
+class FormatTable final : angle::NonCopyablebool HasNonRenderableTextureFormatSupport(vk::Renderer *renderer, angle::FormatID formatID);
 // Checks if a Vulkan format supports all the features needed for a non-filterable texture.
 bool HasNonFilterableTextureFormatSupport(vk::Renderer *renderer, angle::FormatID formatID);
 // Checks if a Vulkan format supports all the features needed for a sample-only (no filtering, no
