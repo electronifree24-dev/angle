@@ -283,18 +283,4 @@ bool IsBCFormat(angle::FormatID formatID);
 
 angle::FormatID GetTranscodeBCFormatID(angle::FormatID formatID);
 
-VkFormat AdjustASTCFormatForHDR(const vk::Renderer *renderer, VkFormat vkFormat);
 
-// Get Etc format cpu transcoding to Bc function.
-LoadImageFunctionInfo GetEtcToBcTransCodingFunc(angle::FormatID formatID);
-
-// Get the swizzle state based on format's requirements and emulations.
-gl::SwizzleState GetFormatSwizzle(const angle::Format &angleFormat, const bool sized);
-
-// Apply application's swizzle to the swizzle implied by format as received from GetFormatSwizzle.
-gl::SwizzleState ApplySwizzle(const gl::SwizzleState &formatSwizzle,
-                              const gl::SwizzleState &toApply);
-
-}  // namespace rx
-
-#endif  // LIBANGLE_RENDERER_VULKAN_VK_FORMAT_UTILS_H_
